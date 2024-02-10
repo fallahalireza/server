@@ -38,3 +38,22 @@ display_info() {
 }
 
 print_style "Automatically deploy the Laravel project to the Ubuntu server\n" "purple"
+
+display_info "Checking if PHP and required extensions are installed..."
+
+# Check if PHP and required extensions are installed
+required_packages=("php" "php-ctype" "php-curl" "php-dom" "php-fileinfo" "php-filter" "php-hash" "php-mbstring" "php-openssl" "php-pcre" "php-pdo" "php-session" "php-tokenizer" "php-xml" "php-cli" "php-zip" "php-json" "php-mysql")
+
+for package in "${required_packages[@]}"; do
+    if ! check_package "$package"; then
+        display_gray "Package $package is not installed. Installing...\n"
+        sudo apt update -y
+        sudo apt install "$package" -y || display_error "Failed to install $package. Exiting..."
+        display_success "$package has been installed successfully."
+    else
+        display_gray "Package $package is already installed.\n"
+    fi
+done
+
+display_success "Installation and setup completed. (PHP)"
+
