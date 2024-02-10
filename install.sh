@@ -40,7 +40,7 @@ display_info() {
 print_style "Automatically deploy the Laravel project to the Ubuntu server\n" "purple"
 
 display_info "Checking if PHP and required extensions are installed..."
-sudo apt update -y
+# sudo apt update -y
 
 # Check if PHP and required extensions are installed
 required_packages=("php" "php-ctype" "php-curl" "php-dom" "php-fileinfo" "php-filter" "php-hash" "php-mbstring" "php-openssl" "php-pcre" "php-pdo" "php-session" "php-tokenizer" "php-xml" "php-cli" "php-zip" "php-json" "php-mysql")
