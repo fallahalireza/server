@@ -62,10 +62,9 @@ install_packages() {
 
 print_style "Automatically deploy the Laravel project to the Ubuntu server\n" "purple"
 
+sudo apt update -y
+
 display_info "Checking if PHP and required extensions are installed..."
-sudo add-apt-repository ppa:ondrej/php
-
-
 required_packages=(
     "build-essential"
     "libbz2-dev"
@@ -76,9 +75,9 @@ required_packages=(
     "libssl-dev"
     "libxml2-dev"
     "libxslt-dev"
-    "php-cli"
-    "php-bz2"
-    "php-xml"
+    "php8.1-cli"
+    "php8.1-bz2"
+    "php8.1-xml"
     "pkg-config"
 )
 install_packages "${required_packages[@]}"
@@ -88,8 +87,4 @@ chmod +x phpbrew.phar
 sudo mv phpbrew.phar /usr/local/bin/phpbrew
 phpbrew init
 [[ -e ~/.phpbrew/bashrc ]] && source ~/.phpbrew/bashrc
-source ~/.phpbrew/phpbrew.fish
-mkdir -p /opt/phpbrew
-phpbrew init --root=/opt/phpbrew
-
 display_success "Installation and setup completed. (phpbrew)"
