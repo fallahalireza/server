@@ -37,24 +37,59 @@ display_info() {
     echo
 }
 
+check_package() {
+    local package_name="$1"
+    if dpkg-query -W -f='${Status}' "$package_name" 2>/dev/null | grep -q "installed"; then
+        return 0  # Package is installed
+    else
+        return 1  # Package is not installed
+    fi
+}
+
+install_packages() {
+    local packages=("$@")
+    for package in "${packages[@]}"; do
+        if ! check_package "$package"; then
+            display_info "Package $package is not installed. Installing...\n"
+            display_info "sudo apt install $package -y\n"
+            sudo apt install "$package" -y || display_error "Failed to install $package. Exiting..."
+            display_success "$package has been installed successfully."
+        else
+            display_info "Package $package is already installed.\n"
+        fi
+    done
+}
+
 print_style "Automatically deploy the Laravel project to the Ubuntu server\n" "purple"
 
 display_info "Checking if PHP and required extensions are installed..."
-# sudo apt update -y
+sudo add-apt-repository ppa:ondrej/php
 
-# Check if PHP and required extensions are installed
-required_packages=("php" "php-ctype" "php-curl" "php-dom" "php-fileinfo" "php-filter" "php-hash" "php-mbstring" "php-openssl" "php-pcre" "php-pdo" "php-session" "php-tokenizer" "php-xml" "php-cli" "php-zip" "php-json" "php-mysql")
 
-for package in "${required_packages[@]}"; do
-    if ! check_package "$package"; then
-        display_info "Package $package is not installed. Installing...\n"
-        display_info "sudo apt install $package -y\n"
-        sudo apt install "$package" -y || display_error "Failed to install $package. Exiting..."
-        display_success "$package has been installed successfully."
-    else
-        display_info "Package $package is already installed.\n"
-    fi
-done
+required_packages=(
+    "build-essential"
+    "libbz2-dev"
+    "libreadline-dev"
+    "libsqlite3-dev"
+    "libcurl4-gnutls-dev"
+    "libzip-dev"
+    "libssl-dev"
+    "libxml2-dev"
+    "libxslt-dev"
+    "php-cli"
+    "php-bz2"
+    "php-xml"
+    "pkg-config"
+)
+install_packages "${required_packages[@]}"
 
-display_success "Installation and setup completed. (PHP)"
+curl -L -O https://github.com/phpbrew/phpbrew/releases/latest/download/phpbrew.phar
+chmod +x phpbrew.phar
+sudo mv phpbrew.phar /usr/local/bin/phpbrew
+phpbrew init
+[[ -e ~/.phpbrew/bashrc ]] && source ~/.phpbrew/bashrc
+source ~/.phpbrew/phpbrew.fish
+mkdir -p /opt/phpbrew
+phpbrew init --root=/opt/phpbrew
 
+display_success "Installation and setup completed. (phpbrew)"
