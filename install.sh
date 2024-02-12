@@ -25,6 +25,10 @@ display_error() {
     echo
     exit 1
 }
+display_warning() {
+    print_style "$1" "warning"
+    echo
+}
 display_success() {
     print_style "$1" "success"
     echo
@@ -76,6 +80,7 @@ install_packages_php() {
             sudo apt install "$package" -y || display_error "Failed to install $package. Exiting..."
             display_success "$package has been installed successfully."
         elif ! check_package "$package"; then
+            sudo apt install "$package" -y || display_warning "warning to install $package."
             display_info "Package $package is not installed but its related PHP extension is active. Skipping installation.\n"
         else
             display_info "Package $package is already installed.\n"
