@@ -123,9 +123,9 @@ required_packages_php=("php" "php-ctype" "php-curl" "php-dom" "php-fileinfo" "ph
 install_packages_php "${required_packages_php[@]}"
 display_success "Installation and setup completed. (php)"
 
-install_nginx "nginx"
-install_nginx "mysql-server"
-
+install_package "nginx"
+install_package "mysql-server"
+install_composer
 
 display_php_version
 display_mysql_version
