@@ -36,7 +36,14 @@ display_info() {
     print_style "$1" "info"
     echo
 }
-
+add_repository_ondrej() {
+    local repository="$1"
+    if apt-cache policy | grep -q "$repository"; then
+        display_success "The repository 'ppa:$repository' is already added."
+    else
+        echo | sudo add-apt-repository -y ppa:"$repository"
+    fi
+}
 check_package() {
     local package_name="$1"
     if dpkg-query -W -f='${Status}' "$package_name" 2>/dev/null | grep -q "installed"; then
@@ -95,7 +102,7 @@ display_php_version() {
 
 # Function to display version of MySQL
 display_mysql_version() {
-    version=$(mysql --version | awk '{print $5}'  | cut -d'-' -f1)
+    version=$(mysql --version | awk '{print $3}'  | cut -d'-' -f1)
     print_style "MySQL version: " "purple"
     print_style "$version\n" "gray"
 }
@@ -111,8 +118,8 @@ display_nginx_version() {
 print_style "Automatically deploy the Laravel project to the Ubuntu server\n" "purple"
 
 sudo apt update -y
-echo | sudo add-apt-repository -y ppa:ondrej/php
-echo | sudo add-apt-repository -y ppa:ondrej/nginx
+add_repository_ondrej "ondrej/php"
+add_repository_ondrej "ondrej/nginx"
 
 display_info "Checking if PHP and required extensions are installed..."
 
