@@ -73,10 +73,9 @@ install_packages() {
     done
 }
 install_packages_php() {
-    local php_version="$1"
-    local packages=("${@:2}")
+    local packages=("$@")
     for package in "${packages[@]}"; do
-        if ! check_package "$package" && ! php$php_version -m | grep -q "${package#php-}"; then
+        if ! check_package "$package" && ! php -m | grep -q "${package#php-}"; then
             display_info "Package $package is not installed and its related PHP extension is not active (sudo apt install $package -y). Installing...\n"
             sudo apt install "$package" -y || display_error "Failed to install $package. Exiting..."
             display_success "$package has been installed successfully."
@@ -132,7 +131,7 @@ install_packages "${required_packages[@]}"
 display_info "Checking if PHP and required extensions are installed..."
 display_gray "install version PHP:"; read  php_version
 required_packages_php=("php" "php-xml" "php-ctype" "php-curl" "php-dom" "php-fileinfo" "php-filter" "php-hash" "php-mbstring" "php-openssl" "php-pcre" "php-pdo" "php-session" "php-tokenizer" "php-cli" "php-zip" "php-json" "php-mysql" "php-fpm")
-install_packages_php "$php_version" "${required_packages_php[@]}"
+install_packages_php "${required_packages_php[@]}" "$php_version"
 display_success "Installation and setup completed. (php)"
 
 install_package "nginx"
