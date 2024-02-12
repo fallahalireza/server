@@ -45,46 +45,89 @@ check_package() {
         return 1  # Package is not installed
     fi
 }
-
+install_package() {
+    local package_name="$1"
+    if ! check_package "$package_name"; then
+        display_info "Package $package_name is not installed (sudo apt install $package_name -y). Installing...\n"
+        sudo apt install "$package_name" -y || display_error "Failed to install $package_name. Exiting..."
+        display_success "$package_name has been installed successfully."
+    else
+        display_info "Package $package_name is already installed.\n"
+    fi
+}
 install_packages() {
     local packages=("$@")
     for package in "${packages[@]}"; do
-        if ! check_package "$package"; then
-            display_info "Package $package is not installed. Installing...\n"
-            display_info "sudo apt install $package -y\n"
+        install_package "$package"
+    done
+}
+install_packages_php() {
+    local packages=("$@")
+    for package in "${packages[@]}"; do
+        if ! check_package "$package" && ! php -m | grep -q "${package#php-}"; then
+            display_info "Package $package is not installed and its related PHP extension is not active (sudo apt install $package -y). Installing...\n"
             sudo apt install "$package" -y || display_error "Failed to install $package. Exiting..."
             display_success "$package has been installed successfully."
+        elif ! check_package "$package"; then
+            display_info "Package $package is not installed but its related PHP extension is active. Skipping installation.\n"
         else
             display_info "Package $package is already installed.\n"
         fi
     done
 }
+install_composer() {
+    if ! [ -x "$(command -v composer)" ]; then
+        display_info "Composer is not installed. Installing...\n"
+        curl -sS https://getcomposer.org/installer -o composer-setup.php
+        sudo php composer-setup.php --install-dir=/usr/local/bin --filename=composer
+        rm composer-setup.php
+        display_success "Composer has been installed successfully."
+    else
+        display_info "Composer is already installed.\n"
+    fi
+}
+
+display_php_version() {
+    version=$(php -v | head -n 1 | awk '{print $2}' | cut -d'-' -f1)
+    print_style "PHP version: " "purple"
+    print_style "$version\n" "gray"
+}
+
+# Function to display version of MySQL
+display_mysql_version() {
+    version=$(mysql --version | awk '{print $5}'  | cut -d'-' -f1)
+    print_style "MySQL version: " "purple"
+    print_style "$version\n" "gray"
+}
+
+# Function to display version of Nginx
+display_nginx_version() {
+    version=$(nginx -v 2>&1 | awk '{print $3}' | cut -d'/' -f2)
+    print_style "Nginx version: " "purple"
+    print_style "$version\n" "gray"
+}
+
 
 print_style "Automatically deploy the Laravel project to the Ubuntu server\n" "purple"
 
 sudo apt update -y
+echo | sudo add-apt-repository -y ppa:ondrej/php
+echo | sudo add-apt-repository -y ppa:ondrej/nginx
 
 display_info "Checking if PHP and required extensions are installed..."
-required_packages=(
-    "build-essential"
-    "libbz2-dev"
-    "libreadline-dev"
-    "libsqlite3-dev"
-    "libcurl4-gnutls-dev"
-    "libzip-dev"
-    "libssl-dev"
-    "libxml2-dev"
-    "libxslt-dev"
-    "php8.1-cli"
-    "php8.1-bz2"
-    "php8.1-xml"
-    "pkg-config"
-)
+
+required_packages=("curl" "git" "unzip" "zip")
 install_packages "${required_packages[@]}"
 
-curl -L -O https://github.com/phpbrew/phpbrew/releases/latest/download/phpbrew.phar
-chmod +x phpbrew.phar
-sudo mv phpbrew.phar /usr/local/bin/phpbrew
-phpbrew init
-[[ -e ~/.phpbrew/bashrc ]] && source ~/.phpbrew/bashrc
-display_success "Installation and setup completed. (phpbrew)"
+required_packages_php=("php" "php-ctype" "php-curl" "php-dom" "php-fileinfo" "php-filter" "php-hash" "php-mbstring" "php-openssl" "php-pcre" "php-pdo" "php-session" "php-tokenizer" "php-xml" "php-cli" "php-zip" "php-json" "php-mysql" "php-fpm")
+install_packages_php "${required_packages_php[@]}"
+display_success "Installation and setup completed. (php)"
+
+install_nginx "nginx"
+install_nginx "mysql-server"
+
+
+display_php_version
+display_mysql_version
+display_nginx_version
+
