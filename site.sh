@@ -18,8 +18,10 @@ composer create-project --prefer-dist laravel/laravel "$laravel_directory"
 # Change ownership of the Laravel directory to the web server user
 chown -R www-data:www-data "$laravel_directory"
 
+nginx_file="/etc/nginx/sites-available/$domain_name"
+
 # Create Nginx configuration file
-cat > "/etc/nginx/sites-available/$domain_name" <<'EOF'
+cat > "$nginx_file" <<'EOF'
 server {
     listen 80;
     listen [::]:80;
@@ -53,9 +55,16 @@ server {
     }
 }
 EOF
-directory_nginx="$laravel_directory/public"
-sed -i "s/\#domain_name/$domain_name/g" "/etc/nginx/sites-available/$domain_name"
-sed -i "s/\#laravel_directory/$directory_nginx/g" "/etc/nginx/sites-available/$domain_name"
+# متغیر‌هایی که باید جایگزین شوند
+declare -A variables
+variables["#domain_name"]=$domain_name
+variables["#laravel_directory"]="$laravel_directory/public"
+
+# جایگزینی متغیرها
+for key in "${!variables[@]}"; do
+    sed -i "s|$key|${variables[$key]}|g" "$nginx_file"
+done
+
 
 # Create a symbolic link to enable the site
 ln -s "/etc/nginx/sites-available/$domain_name" "/etc/nginx/sites-enabled/"
