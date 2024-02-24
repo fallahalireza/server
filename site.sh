@@ -1,4 +1,8 @@
 #!/bin/bash
+sudo systemctl stop apache2
+sudo systemctl disable apache2
+sudo rm /etc/nginx/sites-available/default
+sudo rm /etc/nginx/sites-enabled/default
 
 read -p "Enter domain name: " domain_name
 
@@ -15,7 +19,7 @@ composer create-project --prefer-dist laravel/laravel "$laravel_directory"
 chown -R www-data:www-data "$laravel_directory"
 
 # Create Nginx configuration file
-cat > "/etc/nginx/sites-available/$domain_name" <<EOF
+cat > "/etc/nginx/sites-available/$domain_name" <<'EOF'
 server {
     listen 80;
     listen [::]:80;
@@ -40,7 +44,7 @@ server {
 
     location ~ \.php$ {
         fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
-        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
         include fastcgi_params;
     }
 
@@ -49,7 +53,6 @@ server {
     }
 }
 EOF
-
 # Create a symbolic link to enable the site
 ln -s "/etc/nginx/sites-available/$domain_name" "/etc/nginx/sites-enabled/"
 
