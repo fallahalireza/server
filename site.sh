@@ -23,8 +23,8 @@ cat > "/etc/nginx/sites-available/$domain_name" <<'EOF'
 server {
     listen 80;
     listen [::]:80;
-    server_name $domain_name;
-    root $laravel_directory/public;
+    server_name #domain_name;
+    root #laravel_directory;
 
     add_header X-Frame-Options "SAMEORIGIN";
     add_header X-Content-Type-Options "nosniff";
@@ -43,7 +43,7 @@ server {
     error_page 404 /index.php;
 
     location ~ \.php$ {
-        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
+        fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
         include fastcgi_params;
     }
@@ -53,9 +53,9 @@ server {
     }
 }
 EOF
-
-sed -i "s/\$domain_name/$domain_name/g" "/etc/nginx/sites-available/$domain_name"
-sed -i "s/\$laravel_directory/$laravel_directory/g" "/etc/nginx/sites-available/$domain_name"
+directory_nginx="$laravel_directory/public"
+sed -i "s/\#domain_name/$domain_name/g" "/etc/nginx/sites-available/$domain_name"
+sed -i "s/\#laravel_directory/$directory_nginx/g" "/etc/nginx/sites-available/$domain_name"
 
 # Create a symbolic link to enable the site
 ln -s "/etc/nginx/sites-available/$domain_name" "/etc/nginx/sites-enabled/"
