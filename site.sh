@@ -53,6 +53,10 @@ server {
     }
 }
 EOF
+
+sed -i "s/\$domain_name/$domain_name/g" "/etc/nginx/sites-available/$domain_name"
+sed -i "s/\$laravel_directory/$laravel_directory/g" "/etc/nginx/sites-available/$domain_name"
+
 # Create a symbolic link to enable the site
 ln -s "/etc/nginx/sites-available/$domain_name" "/etc/nginx/sites-enabled/"
 
