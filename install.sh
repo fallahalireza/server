@@ -72,21 +72,6 @@ install_packages() {
         install_package "$package"
     done
 }
-install_packages_php() {
-    local packages=("$@")
-    for package in "${packages[@]}"; do
-        if ! check_package "$package" && ! php -m | grep -q "${package#php-}"; then
-            display_info "Package $package is not installed and its related PHP extension is not active (sudo apt install $package -y). Installing...\n"
-            sudo apt install "$package" -y || display_error "Failed to install $package. Exiting..."
-            display_success "$package has been installed successfully."
-        elif ! check_package "$package"; then
-            sudo apt install "$package" -y || display_warning "warning to install $package."
-            display_info "Package $package is not installed but its related PHP extension is active. Skipping installation.\n"
-        else
-            display_info "Package $package is already installed.\n"
-        fi
-    done
-}
 install_composer() {
     if ! [ -x "$(command -v composer)" ]; then
         display_info "Composer is not installed. Installing...\n"
@@ -119,7 +104,6 @@ display_nginx_version() {
     print_style "$version\n" "gray"
 }
 
-
 print_style "Automatically deploy the Laravel project to the Ubuntu server\n" "purple"
 
 sudo apt update -y
@@ -129,9 +113,8 @@ required_packages=("curl" "git" "unzip" "zip")
 install_packages "${required_packages[@]}"
 
 display_info "Checking if PHP and required extensions are installed..."
-display_gray "install version PHP:"; read  php_version
 required_packages_php=("php" "php-xml" "php-ctype" "php-curl" "php-dom" "php-fileinfo" "php-filter" "php-hash" "php-mbstring" "php-openssl" "php-pcre" "php-pdo" "php-session" "php-tokenizer" "php-cli" "php-zip" "php-json" "php-mysql" "php-fpm")
-install_packages_php "${required_packages_php[@]}" "$php_version"
+install_packages "${required_packages_php[@]}"
 display_success "Installation and setup completed. (php)"
 
 install_package "nginx"
