@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# Check if git is installed
+if ! command -v git &> /dev/null; then
+    echo "Git is not installed. Installing..."
+    sudo apt update
+    sudo apt install git -y
+    echo "Git has been installed successfully."
+fi
+
 # Stop and disable Apache
 stop_output=$(sudo systemctl stop apache2 2>&1)
 disable_output=$(sudo systemctl disable apache2 2>&1)
@@ -13,14 +21,15 @@ fi
 
 # Check if Nginx configuration files exist and remove them if they do
 if [ -f "/etc/nginx/sites-available/default" ] || [ -f "/etc/nginx/sites-enabled/default" ]; then
-    sudo rm /etc/nginx/sites-available/default
     sudo rm /etc/nginx/sites-enabled/default
+    sudo rm /etc/nginx/sites-available/default
     echo "Nginx configuration file default removed."
 else
     echo "Nginx configuration file default not found."
 fi
 
 read -p "Enter domain name: " domain_name
+read -p "Enter URL github: " url_github
 
 laravel_directory="/var/www/sites/$domain_name"
 
@@ -30,6 +39,9 @@ if [ -d "$laravel_directory" ]; then
 fi
 # Create Laravel project
 composer create-project --prefer-dist laravel/laravel "$laravel_directory"
+git clone "$url_github" "$laravel_directory"
+(cd "$laravel_directory" && composer install)
+
 
 # Change ownership of the Laravel directory to the web server user
 chown -R www-data:www-data "$laravel_directory"
@@ -71,6 +83,14 @@ server {
     }
 }
 EOF
+
+if [ -f "$nginx_file" ]; then
+    echo "Nginx configuration file created successfully."
+else
+    echo "Error: Failed to create Nginx configuration file."
+    exit 1
+fi
+
 # متغیر‌هایی که باید جایگزین شوند
 declare -A variables
 variables["#domain_name"]=$domain_name
