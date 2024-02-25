@@ -1,8 +1,24 @@
 #!/bin/bash
-sudo systemctl stop apache2
-sudo systemctl disable apache2
-sudo rm /etc/nginx/sites-available/default
-sudo rm /etc/nginx/sites-enabled/default
+
+# Stop and disable Apache
+stop_output=$(sudo systemctl stop apache2 2>&1)
+disable_output=$(sudo systemctl disable apache2 2>&1)
+
+# Check if Apache stop and disable commands were successful
+if [[ $stop_output == *"Failed"* || $disable_output == *"Failed"* ]]; then
+    echo "Error: Failed to stop or disable Apache."
+else
+    echo "Apache stopped and disabled successfully."
+fi
+
+# Check if Nginx configuration files exist and remove them if they do
+if [ -f "/etc/nginx/sites-available/default" ] || [ -f "/etc/nginx/sites-enabled/default" ]; then
+    sudo rm /etc/nginx/sites-available/default
+    sudo rm /etc/nginx/sites-enabled/default
+    echo "Nginx configuration file default removed."
+else
+    echo "Nginx configuration file default not found."
+fi
 
 read -p "Enter domain name: " domain_name
 
@@ -18,7 +34,7 @@ composer create-project --prefer-dist laravel/laravel "$laravel_directory"
 # Change ownership of the Laravel directory to the web server user
 chown -R www-data:www-data "$laravel_directory"
 
-nginx_file="/etc/nginx/sites-available/$domain_name"
+nginx_file="/etc/nginx/sites-available/$domain_name.conf"
 
 # Create Nginx configuration file
 cat > "$nginx_file" <<'EOF'
