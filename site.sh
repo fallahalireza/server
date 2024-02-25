@@ -83,7 +83,7 @@ done
 
 
 # Create a symbolic link to enable the site
-ln -s "/etc/nginx/sites-available/$domain_name" "/etc/nginx/sites-enabled/"
+ln -s "$nginx_file" "/etc/nginx/sites-enabled/"
 
 # Check Nginx configuration
 nginx -t
