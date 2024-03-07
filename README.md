@@ -9,3 +9,6 @@ bash <(curl -Ls https://raw.githubusercontent.com/fallahalireza/server/main/inst
 ```
 bash <(curl -Ls https://raw.githubusercontent.com/fallahalireza/server/main/site.sh)
 ```
+```
+bash <(curl -Ls https://raw.githubusercontent.com/fallahalireza/server/main/update.sh)
+```
